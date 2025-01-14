@@ -3,8 +3,9 @@ from __future__ import annotations
 from dataclasses import dataclass
 from random import random
 from enum import Enum
+from time import sleep
 import openfoodfacts
-from requests import ConnectionError
+from requests import ConnectionError, Timeout
 
 
 class AbstractSDK:
@@ -131,7 +132,17 @@ class SDKV3:
 
 
 class ProductOperationV5:
-    def get(self, barcode: str, timeout: int = 5) -> Product:
+    def get(self, barcode: str, timeout: int = 1) -> Product:
+        time_to_wait = random()*10
+        if time_to_wait < 1.2:
+            time_to_wait = 60*60*24
+        time_waited = 0
+        for _ in range(int(time_to_wait)):
+            time_waited +=1
+            sleep(1)
+            if timeout < time_waited:
+                raise Timeout()
+        
         api = openfoodfacts.API(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
             version=openfoodfacts.APIVersion.v3,
@@ -156,9 +167,16 @@ class SDKV5:
 
 
 class ProductOperationV6:
-    def get(self, barcode: str, timeout: int = 5) -> Product:
-        if random() < 0.2:
-            raise ConnectionError("Error when trying to reach hose")
+    def get(self, barcode: str, timeout: int = 1) -> Product:
+        time_to_wait = random()*10
+        if time_to_wait < 2:
+            time_to_wait = 60*60*24
+        time_waited = 0
+        for _ in range(int(time_to_wait)):
+            time_waited +=1
+            sleep(1)
+            if timeout < time_waited:
+                raise Timeout()
 
         api = openfoodfacts.API(
             user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
